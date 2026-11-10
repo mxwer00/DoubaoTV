@@ -1,0 +1,25 @@
+# Electron 运行时（第三方二进制，体积大，不入库）
+/electron.exe
+*.dll
+*.pak
+*.bin
+*.dat
+LICENSES.chromium.html
+/locales/
+/vk_swiftshader_icd.json
+/version
+/LICENSE
+/debug.log
+/resources/default_app.asar
+
+# 个人数据、下载内容、自检脚本与截图
+/data/
+/downloads/
+/_probe/
+/_icon/
+
+# 临时与系统文件
+/Thumbs.db
+/desktop.ini
+*.log
+/.gitignore.bak

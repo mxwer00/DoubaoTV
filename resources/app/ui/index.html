@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>豆包影视盒</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img src="assets/app-icon.png" alt="豆包影视盒" draggable="false"></div>
+      <div class="brand-text">
+        <h1>豆包影视盒</h1>
+        <p>多站点片源 · 在线播放</p>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="search"><span class="ico">⌕</span>搜索</button>
+      <button class="nav-item" data-view="browse"><span class="ico">▤</span>分类浏览</button>
+      <button class="nav-item" data-view="ethics"><span class="ico">◍</span>伦理片</button>
+      <button class="nav-item" data-view="favorites"><span class="ico">★</span>我的收藏</button>
+      <button class="nav-item" data-view="sources"><span class="ico">⛁</span>片源管理</button>
+      <button class="nav-item" data-view="about"><span class="ico">ⓘ</span>使用说明</button>
+    </nav>
+    <div class="side-foot">
+      <button id="btnDataDir" class="ghost-btn">打开数据文件夹</button>
+      <span id="verLabel" class="ver"></span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- 搜索 -->
+    <section id="view-search" class="view active">
+      <div class="searchbar">
+        <input id="kw" type="text" placeholder="输入片名、演员或关键词，回车搜索（如：流浪地球）" autocomplete="off" />
+        <button id="btnSearch" class="primary-btn">搜索</button>
+      </div>
+      <div class="row-between">
+        <label class="check"><input id="deepSearch" type="checkbox" /> 深度搜索（每个源多翻 3 页，稍慢）</label>
+        <div id="historyChips" class="chips"></div>
+      </div>
+      <div id="sourceStatus" class="src-status"></div>
+      <div id="searchHint" class="hint">输入关键词后回车，程序会同时在所有启用的片源里并发搜索，结果自动按影片合并。</div>
+      <div id="searchResults" class="grid"></div>
+      <div id="searchMore" class="more-wrap"></div>
+    </section>
+
+    <!-- 分类浏览 -->
+    <section id="view-browse" class="view">
+      <div class="row-between">
+        <div class="inline">
+          <label class="label">片源</label>
+          <select id="browseSource" class="select"></select>
+        </div>
+        <div id="browseInfo" class="hint inline-hint"></div>
+      </div>
+      <div class="browse-body">
+        <div id="classList" class="class-list"></div>
+        <div class="browse-main">
+          <div id="browseGrid" class="grid"></div>
+          <div id="browsePager" class="pager"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 伦理片 -->
+    <section id="view-ethics" class="view">
+      <div class="row-between">
+        <h2 class="view-title">伦理片</h2>
+        <div class="inline">
+          <button id="btnEthicsReload" class="ghost-btn">刷新</button>
+        </div>
+      </div>
+      <div id="ethicsStatus" class="src-status"></div>
+      <div id="ethicsHint" class="hint">跨所有启用片源抓取各站的「伦理片」分类，结果按影片合并。</div>
+      <div id="ethicsGrid" class="grid"></div>
+      <div id="ethicsPager" class="pager"></div>
+    </section>
+
+    <!-- 收藏 -->
+    <section id="view-favorites" class="view">
+      <div class="row-between">
+        <h2 class="view-title">我的收藏</h2>
+        <button id="btnClearFav" class="ghost-btn">清空</button>
+      </div>
+      <div id="favGrid" class="grid"></div>
+    </section>
+
+    <!-- 片源管理 -->
+    <section id="view-sources" class="view">
+      <div class="row-between">
+        <h2 class="view-title">片源管理</h2>
+        <div class="inline">
+          <button id="btnTestAll" class="ghost-btn">一键测速</button>
+          <button id="btnExport" class="ghost-btn">导出配置</button>
+          <button id="btnImport" class="ghost-btn">导入配置</button>
+        </div>
+      </div>
+      <div class="hint">支持任意 Apple CMS（MacCMS10）采集接口，形如 <code>https://xxx.com/api.php/provide/vod</code>。勾选即启用；点击「测速」可验证接口是否支持按片名搜索。</div>
+      <div class="row-between prefs">
+        <div class="inline">
+          <label class="check"><input id="autoUpdate" type="checkbox" checked /> 启动时自动更新片源</label>
+          <label class="check"><input id="startupEthics" type="checkbox" checked /> 启动时自动打开「伦理片」</label>
+        </div>
+        <span id="lastUpdate" class="hint inline-hint"></span>
+      </div>
+      <div class="inline sub-row">
+        <input id="subUrl" class="line-input" type="text" placeholder="可选：片源订阅地址（JSON 数组，或每行「名称 地址」）；不填则只做启动体检" />
+        <button id="btnRefreshSources" class="ghost-btn">立即更新片源</button>
+      </div>
+      <div id="sourceList" class="source-list"></div>
+      <div class="add-form">
+        <input id="newName" type="text" placeholder="片源名称，如：我的源" />
+        <input id="newUrl" type="text" placeholder="接口地址，如：https://xxx.com/api.php/provide/vod" />
+        <button id="btnAddSource" class="primary-btn">添加</button>
+      </div>
+      <textarea id="importBox" class="import-box" placeholder='批量导入：每行一条，可写「名称 地址」，或直接粘贴 JSON 数组。例如：
+新源A https://a.com/api.php/provide/vod
+https://b.com/api.php/provide/vod'></textarea>
+      <div class="inline"><button id="btnImportApply" class="primary-btn">导入上面的内容</button></div>
+    </section>
+
+    <!-- 说明 -->
+    <section id="view-about" class="view">
+      <h2 class="view-title">使用说明</h2>
+      <div class="about">
+        <div class="lan-card">
+          <div class="lan-row">
+            <span class="lan-label">手机（iPhone）访问地址</span>
+            <span class="lan-url" id="lanUrl">正在启动局域网服务…</span>
+            <button id="btnCopyLan" class="ghost-btn">复制</button>
+          </div>
+          <div class="lan-hint" id="lanHint">
+            手机连同一个 WiFi，用 Safari 打开上面的地址即可搜索、选线路、在线播放（播放由本机代理转发，画面与电脑端同源）。
+          </div>
+        </div>
+        <p><b>这是什么：</b>一个纯本地桌面程序，汇总多个公共采集站（CMS 接口）的片源，输入片名即可全网搜索，并在程序内直接播放 m3u8 视频流。</p>
+        <h3>基本操作</h3>
+        <ul>
+          <li>在「搜索」页输入片名回车，结果会按影片合并，卡片上标出该片在几个片源里有（点开可切换线路、选集）。</li>
+          <li>播放器控制条右侧的分辨率徽标（如 1920×800）显示实际解码分辨率；默认锁定最高档，点击可切「锁定最高 / 自动升降档」。</li>
+          <li>旁边的「原始 / 铺满」按钮控制画面尺寸：「原始」（默认）按片源真实分辨率显示、绝不放大（一个视频像素对一个屏幕像素，最清晰）；「铺满」尽量填满窗口，小片源会被放大变糊。</li>
+          <li>窗口大小和位置会被记住；界面整体缩放用 <code>Ctrl + / Ctrl -</code>（<code>Ctrl 0</code> 复位），设置同样会记住。</li>
+          <li>详情页每集右上角「⤓」= 下载这一集到本地；「⤓ 下载整条线路」= 把当前线路所有集排队下载。文件存到 <code>D:\DoubaoTV\downloads</code>，右下角浮层显示进度、速度，可取消。下来的 .ts 用 PotPlayer / VLC 播。</li>
+          <li>「分类浏览」按片源自身的分类（电影 / 剧集 / 动漫 / 综艺…）翻页看片。</li>
+          <li>「伦理片」页跨所有片源抓取各站的「伦理片」分类并按影片合并，支持翻页；启动时默认自动打开。</li>
+          <li>每次启动会在后台自动做一次片源体检（约 3 秒后开始，之后每 6 小时一次），不占界面、不打断正在播放的视频；可在「片源管理」查看上次结果、填订阅地址或关掉该行为。</li>
+          <li>「片源管理」可增删改，内置 9 个已验证可搜索的源；源失效时删掉或替换即可。</li>
+          <li>播放器快捷键：<code>空格</code> 播放/暂停、<code>← →</code> 快退/快进 10 秒、<code>↑ ↓</code> 音量、<code>F</code> 全屏、<code>Esc</code> 退出播放。</li>
+        </ul>
+        <h3>说明与边界</h3>
+        <ul>
+          <li>所有影片资源均来自第三方采集接口，程序不存储任何片源文件，仅做检索与播放转发。</li>
+          <li>播放依赖源站线路的可用性；某条线路卡顿时，在详情里换一个片源或换一条播放线路。</li>
+          <li>程序不写注册表、不装服务，全部数据都在 <code id="aboutDataDir">D:\DoubaoTV\data</code>（片源、收藏、历史、日志）。删掉整个文件夹即彻底卸载。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 详情弹窗 -->
+<div id="detailMask" class="mask">
+  <div class="detail-panel">
+    <button id="detailClose" class="close-btn">✕</button>
+    <div class="detail-head">
+      <div class="detail-poster"><img id="dPoster" alt="" /><div id="dPosterPh" class="poster-ph">无封面</div></div>
+      <div class="detail-meta">
+        <h2 id="dTitle">—</h2>
+        <div id="dSub" class="sub"></div>
+        <div id="dActors" class="sub"></div>
+        <div id="dIntro" class="intro"></div>
+        <div class="inline">
+          <button id="btnFav" class="ghost-btn">★ 收藏</button>
+          <button id="btnDlLine" class="ghost-btn" title="把当前片源/线路的全部集下载到 D:\DoubaoTV\downloads">⤓ 下载整条线路</button>
+          <button id="btnOpenDlDir" class="ghost-btn">打开下载文件夹</button>
+        </div>
+      </div>
+    </div>
+    <div class="tabs" id="dSourceTabs"></div>
+    <div class="line-tabs" id="dLineTabs"></div>
+    <div id="dEpisodes" class="episodes"></div>
+  </div>
+</div>
+
+<!-- 下载任务浮层 -->
+<div id="dlPanel" class="dl-panel">
+  <div class="dl-head">
+    <span>下载任务</span>
+    <button id="dlHide" class="dl-x" title="收起">×</button>
+  </div>
+  <div id="dlList" class="dl-list"></div>
+</div>
+
+<!-- 播放器 -->
+<div id="player" class="player">
+  <video id="video" playsinline></video>
+  <div id="playerLoading" class="player-loading"><span class="spinner"></span><span id="playerLoadingText">正在加载……</span></div>
+  <div id="playerError" class="player-error">
+    <p id="playerErrorText">播放失败</p>
+    <div class="inline">
+      <button id="btnRetry" class="primary-btn">重试</button>
+      <button id="btnBrowser" class="ghost-btn">用浏览器打开</button>
+      <button id="btnBack" class="ghost-btn">返回</button>
+    </div>
+  </div>
+  <div class="player-top">
+    <div class="pt-left">
+      <span id="pTitle" class="pt-title">—</span>
+      <span id="pEpisode" class="pt-ep"></span>
+    </div>
+    <div class="pt-right">
+      <button id="btnPrevEp" class="icon-btn" title="上一集">◀</button>
+      <button id="btnNextEp" class="icon-btn" title="下一集">▶</button>
+      <button id="btnClosePlayer" class="icon-btn" title="关闭">✕</button>
+    </div>
+  </div>
+  <div class="player-ctrl">
+    <div id="seekBar" class="seek"><div id="seekBuffered" class="seek-buffered"></div><div id="seekPlayed" class="seek-played"><i></i></div></div>
+    <div class="ctrl-row">
+      <button id="btnPlay" class="icon-btn big">▶</button>
+      <span id="timeLabel" class="time">0:00 / 0:00</span>
+      <button id="btnVol" class="icon-btn">🔊</button>
+      <input id="volBar" class="vol" type="range" min="0" max="1" step="0.05" value="0.8" />
+      <div class="spacer"></div>
+      <button id="btnQuality" class="icon-btn wide" title="画质：点击切换固定最高 / 自动">最高</button>
+      <button id="btnFit" class="icon-btn wide" title="画面尺寸：原始＝按片源分辨率显示不放大（更清晰）；铺满＝填满窗口">原始</button>
+      <button id="btnRate" class="icon-btn wide" title="切换倍速">1x</button>
+      <button id="btnFull" class="icon-btn" title="全屏">⛶</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="vendor/hls.min.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>

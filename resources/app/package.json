@@ -1,0 +1,8 @@
+{
+  "name": "doubaotv",
+  "productName": "豆包影视盒",
+  "version": "1.0.0",
+  "description": "多站点片源聚合搜索与在线播放桌面程序",
+  "main": "main.js",
+  "author": "local"
+}
